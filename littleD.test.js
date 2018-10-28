@@ -6,14 +6,19 @@ const WAITING = 50;
 
 jest.setTimeout(300000);
 
-let search = false;
 const LITTLED_URL = 'https://dict.hjenglish.com/jp/';
+const FORVO_URL = 'https://forvo.com/word'
 const AUTHOR_LIST = ['skent', 'akitomo', 'kaoring', 'kyokotokyojapan', 'kiiro', 'yasuo', 'sorechaude', 'Phlebia'];
 const PRIOR_AUTHOR = 'strawberrybrown';
 const DOWNLOAD_DIR = 'C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.media/';
+const IMPORT_VERB_DIR = 'D:/Ankieasy/OJADJSON.json';
 const EXPORT_JSON_DIR = 'D:/Ankieasy/littleDJSON.json';
 const wordList = [
-'移動',
+    
+];
+const verbList = [
+    '片付ける',
+    'かぶる',
 ];
 
 String.prototype.replaceAll = function(s1, s2) {
@@ -44,10 +49,12 @@ const littleDCrawler = async (page, word) => {
     await page.goto(LITTLED_URL);
     await page.waitFor(WAITING);
 
+    console.log('\tinput');
     await page.waitFor('input[name="word"]');
     await page.type('input[name="word"]', word);
     await page.waitFor(1000);
 
+    console.log('\tbutton');
     await page.waitFor('button[data-trans="jc"]');
     await page.click('button[data-trans="jc"]');
     try {
@@ -89,7 +96,7 @@ const littleDCrawler = async (page, word) => {
 }
 
 const ForvoCrawler = async (page, word) => {
-    await page.goto(`https://forvo.com/word/${word}/#ja`);
+    await page.goto(`${FORVO_URL}/${word}/#ja`);
     await page.waitFor(WAITING);
     
     try {
@@ -140,13 +147,22 @@ describe("Little D", () => {
     })
 
     it('GetWord', async () => {
-
+        let OJADAnkiCardArray = [];
+        OJADAnkiCardArray = JSON.parse(fs.readFileSync(IMPORT_VERB_DIR, 'utf8').toString());
         let AnkiCardArray = [];
+        for (let i = 0; i < verbList.length; i++) {
+            let wordArray = [];
+            wordArray = await littleDCrawler(page, verbList[i]);
+
+            AnkiCard = sentenceParsing(wordArray, OJADAnkiCardArray[i]);
+            AnkiCardArray.push(AnkiCard);
+        }
+
         for (word of wordList) {
             let wordArray = [];
             let audioArray = [];
             wordArray = await littleDCrawler(page, word);
-            if (word.Array.length > 0) {
+            if (wordArray.length > 0) {
                 audioArray = await ForvoCrawler(page, word);
             }
             
@@ -186,6 +202,8 @@ describe("Little D", () => {
                 return;
             };
         });
+
+        
     })
    
     afterAll(async () => {
