@@ -8,17 +8,14 @@ jest.setTimeout(300000);
 
 const LITTLED_URL = 'https://dict.hjenglish.com/jp/';
 const FORVO_URL = 'https://forvo.com/word'
-const AUTHOR_LIST = ['skent', 'akitomo', 'kaoring', 'kyokotokyojapan', 'kiiro', 'yasuo', 'sorechaude', 'Phlebia'];
+const AUTHOR_LIST = ['akitomo', 'kaoring', 'kyokotokyojapan', 'kiiro', 'yasuo', 'sorechaude', 'Phlebia'];
 const PRIOR_AUTHOR = 'strawberrybrown';
 const DOWNLOAD_DIR = 'C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.media/';
-const IMPORT_VERB_DIR = 'D:/Ankieasy/OJADJSON.json';
-const EXPORT_JSON_DIR = 'D:/Ankieasy/littleDJSON.json';
+const IMPORT_VERB_DIR = 'C:/Users/Yu-Hsien/Desktop/Ankieasy/OJADJSON.json';
+const EXPORT_JSON_DIR = 'C:/Users/Yu-Hsien/Desktop/Ankieasy/littleDJSON.json';
 const wordList = [
-    
 ];
 const verbList = [
-    '片付ける',
-    'かぶる',
 ];
 
 String.prototype.replaceAll = function(s1, s2) {
@@ -167,22 +164,21 @@ describe("Little D", () => {
             }
             
             const FILENAME = `Jp_${word}.mp3`;
+            let PRIOR_AUTHOR_FOUND = false;
             let AUTHOR_FOUND = false;
-            let cacheAuthorObj = '';
             for (audioElement of audioArray) {
                 if (audioElement.author === PRIOR_AUTHOR) {
-                    request.get(audioElement.audioUrl).pipe(fs.createWriteStream(`${DOWNLOAD_DIR}/${FILENAME}`));
-                    AUTHOR_FOUND = true;
+                    await request.get(audioElement.audioUrl).pipe(fs.createWriteStream(`${DOWNLOAD_DIR}/${FILENAME}`));
+                    PRIOR_AUTHOR_FOUND = true;
                     break;
                 } else if (AUTHOR_LIST.includes(audioElement.author)) {
-                    cacheAuthorObj = audioElement;
+                    await request.get(audioElement.audioUrl).pipe(fs.createWriteStream(`${DOWNLOAD_DIR}/${FILENAME}`));
                     AUTHOR_FOUND = true;
+                    break;
                 }
             }
-            if (AUTHOR_FOUND && cacheAuthorObj) {
-                request.get(cacheAuthorObj.audioUrl).pipe(fs.createWriteStream(`${DOWNLOAD_DIR}/${FILENAME}`));
-            } else if (audioArray.length > 0) {
-                request.get(audioArray[0].audioUrl).pipe(fs.createWriteStream(`${DOWNLOAD_DIR}/${FILENAME}`));
+            if (!PRIOR_AUTHOR_FOUND && !AUTHOR_FOUND) {
+                await request.get(audioArray[0].audioUrl).pipe(fs.createWriteStream(`${DOWNLOAD_DIR}/${FILENAME}`));
             }
 
             let AnkiCard = {
