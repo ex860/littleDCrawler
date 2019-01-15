@@ -1,0 +1,4 @@
+# 檔案名稱 .gitignore
+
+# node_modules
+node_modules/
