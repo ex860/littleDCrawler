@@ -2,16 +2,10 @@
   "name": "crawler",
   "version": "1.0.0",
   "description": "",
-  "main": "MLJob_Test.js",
-  "scripts": {
-    "test": "jest"
-  },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "babel-cli": "^6.26.0",
     "fs": "0.0.1-security",
-    "jest": "^23.6.0",
     "node-opencc": "^2.0.1",
     "puppeteer": "^1.8.0",
     "request": "^2.88.0"

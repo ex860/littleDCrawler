@@ -4,8 +4,6 @@ let fs = require('fs');
 let opencc = require('node-opencc');
 const WAITING = 50;
 
-jest.setTimeout(300000);
-
 const LITTLED_URL = 'https://dict.hjenglish.com/jp/';
 const FORVO_URL = 'https://forvo.com/word'
 const AUTHOR_LIST = ['akitomo', 'kaoring', 'kyokotokyojapan', 'kiiro', 'yasuo', 'sorechaude', 'Phlebia'];
@@ -46,12 +44,12 @@ const littleDCrawler = async (page, word) => {
     await page.goto(LITTLED_URL);
     await page.waitFor(WAITING);
 
-    console.log('\tinput');
+    console.log('input');
     await page.waitFor('input[name="word"]');
     await page.type('input[name="word"]', word);
     await page.waitFor(1000);
 
-    console.log('\tbutton');
+    console.log('button');
     await page.waitFor('button[data-trans="jc"]');
     await page.click('button[data-trans="jc"]');
     try {
@@ -133,76 +131,68 @@ const ForvoCrawler = async (page, word) => {
     
 };
 
-describe("Little D", () => {
+(async () => {
     let browser, page;
-    beforeAll(async () => {
-        browser = await puppeteer.launch({
-            headless: true, 
-            timeout: 0});
-        page = await browser.newPage();
-        await page.setViewport({height: 0, width: 0});
-    })
+    browser = await puppeteer.launch({
+        headless: true, 
+        timeout: 0
+    });
+    page = await browser.newPage();
+    await page.setViewport({height: 0, width: 0});
 
-    it('GetWord', async () => {
-        let OJADAnkiCardArray = [];
-        OJADAnkiCardArray = JSON.parse(fs.readFileSync(IMPORT_VERB_DIR, 'utf8').toString());
-        let AnkiCardArray = [];
-        for (let i = 0; i < verbList.length; i++) {
-            let wordArray = [];
-            wordArray = await littleDCrawler(page, verbList[i]);
+    let OJADAnkiCardArray = [];
+    OJADAnkiCardArray = JSON.parse(fs.readFileSync(IMPORT_VERB_DIR, 'utf8').toString());
+    let AnkiCardArray = [];
+    for (let i = 0; i < verbList.length; i++) {
+        let wordArray = [];
+        wordArray = await littleDCrawler(page, verbList[i]);
+        AnkiCard = sentenceParsing(wordArray, OJADAnkiCardArray[i]);
+        AnkiCardArray.push(AnkiCard);
+    }
 
-            AnkiCard = sentenceParsing(wordArray, OJADAnkiCardArray[i]);
-            AnkiCardArray.push(AnkiCard);
+    for (word of wordList) {
+        let wordArray = [];
+        let audioArray = [];
+        wordArray = await littleDCrawler(page, word);
+        if (wordArray.length > 0) {
+            audioArray = await ForvoCrawler(page, word);
         }
-
-        for (word of wordList) {
-            let wordArray = [];
-            let audioArray = [];
-            wordArray = await littleDCrawler(page, word);
-            if (wordArray.length > 0) {
-                audioArray = await ForvoCrawler(page, word);
-            }
-            
-            const FILENAME = `Jp_${word}.mp3`;
-            let PRIOR_AUTHOR_FOUND = false;
-            let AUTHOR_FOUND = false;
-            for (audioElement of audioArray) {
-                if (audioElement.author === PRIOR_AUTHOR) {
-                    await request.get(audioElement.audioUrl).pipe(fs.createWriteStream(`${DOWNLOAD_DIR}/${FILENAME}`));
-                    PRIOR_AUTHOR_FOUND = true;
-                    break;
-                } else if (AUTHOR_LIST.includes(audioElement.author)) {
-                    await request.get(audioElement.audioUrl).pipe(fs.createWriteStream(`${DOWNLOAD_DIR}/${FILENAME}`));
-                    AUTHOR_FOUND = true;
-                    break;
-                }
-            }
-            if (!PRIOR_AUTHOR_FOUND && !AUTHOR_FOUND) {
-                await request.get(audioArray[0].audioUrl).pipe(fs.createWriteStream(`${DOWNLOAD_DIR}/${FILENAME}`));
-            }
-
-            let AnkiCard = {
-                front_word: '',
-                back_word: '',
-                read_word: '',
-            }
-            AnkiCard.front_word = `[sound:${FILENAME}]${word}<br>`;
-
-            AnkiCard = sentenceParsing(wordArray, AnkiCard);
-            AnkiCardArray.push(AnkiCard);
-        }
-
-        fs.writeFile(EXPORT_JSON_DIR, JSON.stringify(AnkiCardArray), (err) => {
-            if (err) {
-                console.error(err);
-                return;
-            };
-        });
-
         
-    })
-   
-    afterAll(async () => {
-        await browser.close();
-    })
-})
+        const FILENAME = `Jp_${word}.mp3`;
+        let PRIOR_AUTHOR_FOUND = false;
+        let AUTHOR_FOUND = false;
+        for (audioElement of audioArray) {
+            if (audioElement.author === PRIOR_AUTHOR) {
+                await request.get(audioElement.audioUrl).pipe(fs.createWriteStream(`${DOWNLOAD_DIR}/${FILENAME}`));
+                PRIOR_AUTHOR_FOUND = true;
+                break;
+            } else if (AUTHOR_LIST.includes(audioElement.author)) {
+                await request.get(audioElement.audioUrl).pipe(fs.createWriteStream(`${DOWNLOAD_DIR}/${FILENAME}`));
+                AUTHOR_FOUND = true;
+                break;
+            }
+        }
+        if (!PRIOR_AUTHOR_FOUND && !AUTHOR_FOUND) {
+            await request.get(audioArray[0].audioUrl).pipe(fs.createWriteStream(`${DOWNLOAD_DIR}/${FILENAME}`));
+        }
+
+        let AnkiCard = {
+            front_word: '',
+            back_word: '',
+            read_word: '',
+        }
+        AnkiCard.front_word = `[sound:${FILENAME}]${word}<br>`;
+
+        AnkiCard = sentenceParsing(wordArray, AnkiCard);
+        AnkiCardArray.push(AnkiCard);
+    }
+
+    fs.writeFile(EXPORT_JSON_DIR, JSON.stringify(AnkiCardArray), (err) => {
+        if (err) {
+            console.error(err);
+            return;
+        };
+    });
+
+    browser.close();
+})();
