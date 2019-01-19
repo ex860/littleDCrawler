@@ -99,6 +99,25 @@ const littleDCrawler = async (page, word) => {
 }
 
 const OJADCrawler = async (page, word) => {
+    const getStem = (jisho, jishoGana) => {
+        let index = -1;
+        let match = false;
+        let rest = '';
+        do {
+            if (jisho.substr(index) === jishoGana.substr(index)) {
+                index--;
+                match = true;
+            } else {
+                match = false;
+            }
+        } while (match) 
+        index++;
+        rest = jisho.substr(index);
+        return {
+            kanji: jisho.replaceAll([rest], ''),
+            gana: jishoGana.replaceAll([rest], ''),
+        };
+    };
     await page.goto(`${OJAD_URL}/search/index/word:${word}`);
     await page.waitFor(WAITING);
     let content = '';
@@ -111,21 +130,27 @@ const OJADCrawler = async (page, word) => {
                 let midashi = await row.$eval(`td.midashi`, n => n.innerText.trim());
                 let jisho = midashi.split('・')[0];
                 let masu = midashi.split('・')[1];
+                let stem = {};
                 if (word === jisho) {
                     for (verbType of VERB_TYPE) {
                         let proc = await row.$(`td.katsuyo.katsuyo_${verbType}_js div.katsuyo_proc`);
                         if (proc) {
                             let gana = '';
                             switch (verbType) {
-                                case 'jisho':
+                                case 'jisho': {
+                                    let jishoGana = await proc.$eval('p', n => n.innerText);
+                                    stem = getStem(jisho, jishoGana);
                                     gana = jisho;
                                     break;
+                                }
                                 case 'masu':
                                     gana = masu;
                                     break;
-                                default:
-                                    gana = await proc.$eval('p', n => n.innerText);
+                                default: {
+                                    let originGana = await proc.$eval('p', n => n.innerText);
+                                    gana = originGana.replaceAll([stem.gana], stem.kanji);
                                     break;
+                                }
                             }
                             let buttonId = await proc.$eval(`a.katsuyo_proc_male_button.js_proc_${GENDER}_button`, n => n.getAttribute('id'));
                             // 把數字後兩位數截掉 前面加兩個0 再取後三位
