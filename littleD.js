@@ -22,8 +22,6 @@ const EXPORT_JSON_DIR = 'C:/Users/Yu-Hsien/Desktop/Ankieasy/littleDJSON.json';
 const wordList = [
 ];
 const verbList = [
-    '預かる',
-    '生やす',
 ];
 
 String.prototype.replaceAll = function(s1, s2) {
@@ -116,24 +114,26 @@ const OJADCrawler = async (page, word) => {
                 if (word === jisho) {
                     for (verbType of VERB_TYPE) {
                         let proc = await row.$(`td.katsuyo.katsuyo_${verbType}_js div.katsuyo_proc`);
-                        let gana = '';
-                        switch (verbType) {
-                            case 'jisho':
-                                gana = jisho;
-                                break;
-                            case 'masu':
-                                gana = masu;
-                                break;
-                            default:
-                                gana = await proc.$eval('p', n => n.innerText);
-                                break;
+                        if (proc) {
+                            let gana = '';
+                            switch (verbType) {
+                                case 'jisho':
+                                    gana = jisho;
+                                    break;
+                                case 'masu':
+                                    gana = masu;
+                                    break;
+                                default:
+                                    gana = await proc.$eval('p', n => n.innerText);
+                                    break;
+                            }
+                            let buttonId = await proc.$eval(`a.katsuyo_proc_male_button.js_proc_${GENDER}_button`, n => n.getAttribute('id'));
+                            // 把數字後兩位數截掉 前面加兩個0 再取後三位
+                            let idStrNum = (`00${String(Math.floor(Number.parseInt(buttonId.substr(0, buttonId.indexOf('_') + 1)) / 100))}`).substr(-3);
+                            let pronUrl = `${OJAD_URL}/sound4/mp3/${GENDER}/${idStrNum}/${buttonId}.mp3`;
+                            await request.get(pronUrl).pipe(fs.createWriteStream(`${DOWNLOAD_DIR}/${buttonId}.mp3`));
+                            content += `[sound:${buttonId}.mp3]${gana}<br>`;
                         }
-                        let buttonId = await proc.$eval(`a.katsuyo_proc_male_button.js_proc_${GENDER}_button`, n => n.getAttribute('id'));
-                        // 把數字後兩位數截掉 前面加兩個0 再取後三位
-                        let idStrNum = (`00${String(Math.floor(Number.parseInt(buttonId.substr(0, buttonId.indexOf('_') + 1)) / 100))}`).substr(-3);
-                        let pronUrl = `${OJAD_URL}/sound4/mp3/${GENDER}/${idStrNum}/${buttonId}.mp3`;
-                        await request.get(pronUrl).pipe(fs.createWriteStream(`${DOWNLOAD_DIR}/${buttonId}.mp3`));
-                        content += `[sound:${buttonId}.mp3]${gana}<br>`;
                     }
                 }
             }
