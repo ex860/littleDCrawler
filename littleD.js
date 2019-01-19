@@ -16,7 +16,6 @@ const AUTHOR_LIST = ['akitomo', 'kaoring', 'kyokotokyojapan', 'kiiro', 'yasuo', 
 const PRIOR_AUTHOR = 'strawberrybrown';
 
 const DOWNLOAD_DIR = 'C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.media/';
-const IMPORT_VERB_DIR = 'C:/Users/Yu-Hsien/Desktop/Ankieasy/OJADJSON.json';
 const EXPORT_JSON_DIR = 'C:/Users/Yu-Hsien/Desktop/Ankieasy/littleDJSON.json';
 
 const wordList = [
@@ -114,8 +113,8 @@ const OJADCrawler = async (page, word) => {
         index++;
         rest = jisho.substr(index);
         return {
-            kanji: jisho.replaceAll([rest], ''),
-            gana: jishoGana.replaceAll([rest], ''),
+            kanji: jisho.replace(rest, ''),
+            gana: jishoGana.replace(rest, ''),
         };
     };
     await page.goto(`${OJAD_URL}/search/index/word:${word}`);
@@ -148,7 +147,7 @@ const OJADCrawler = async (page, word) => {
                                     break;
                                 default: {
                                     let originGana = await proc.$eval('p', n => n.innerText);
-                                    gana = originGana.replaceAll([stem.gana], stem.kanji);
+                                    gana = originGana.replace(stem.gana, stem.kanji);
                                     break;
                                 }
                             }
