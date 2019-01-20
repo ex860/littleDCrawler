@@ -151,7 +151,7 @@ const OJADCrawler = async (page, word) => {
                                     break;
                                 }
                             }
-                            let buttonId = await proc.$eval(`a.katsuyo_proc_male_button.js_proc_${GENDER}_button`, n => n.getAttribute('id'));
+                            let buttonId = await proc.$eval(`a.katsuyo_proc_${GENDER}_button.js_proc_${GENDER}_button`, n => n.getAttribute('id'));
                             // 把數字後兩位數截掉 前面加兩個0 再取後三位
                             let idStrNum = (`00${String(Math.floor(Number.parseInt(buttonId.substr(0, buttonId.indexOf('_') + 1)) / 100))}`).substr(-3);
                             let pronUrl = `${OJAD_URL}/sound4/mp3/${GENDER}/${idStrNum}/${buttonId}.mp3`;
@@ -173,6 +173,7 @@ const OJADCrawler = async (page, word) => {
     return {
         front_word: content,
         back_word: '',
+        read_word: '',
     };
 };
 
