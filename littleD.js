@@ -195,8 +195,8 @@ const ForvoCrawler = async (page, word) => {
                         audioObj.audioUrl = await pronLi.$eval('span.play', element => {
                             const playStr = element.getAttribute('onClick');
                             const playParams = playStr.split(';')[0].split(')')[0].split('(')[1].split(',');
-                            const paramFirst = atob(playParams[1].substr(1, playParams[1].length-1));
-                            const paramFourth = atob(playParams[4].substr(1, playParams[4].length-1));
+                            const paramFirst = atob(playParams[1].substring(1, playParams[1].length-1));
+                            const paramFourth = atob(playParams[4].substring(1, playParams[4].length-1));
                             if (paramFourth) {
                                 return `https://audio00.forvo.com/audios/mp3/${paramFourth}`;
                             } else {
