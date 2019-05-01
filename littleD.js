@@ -3,6 +3,7 @@ let request = require('request');
 let fs = require('fs');
 let opencc = require('node-opencc');
 const WAITING = 50;
+const TIMEOUT = 5000;
 
 const LITTLED_URL = 'https://dict.hjenglish.com/jp/';
 const FORVO_URL = 'https://forvo.com/word'
@@ -63,6 +64,9 @@ const littleDCrawler = async (page, word) => {
         await page.waitFor('section.detail-groups');
         let detailGroups = await page.$$('section.detail-groups');
         let meaningArray = [];
+        if (detailGroups.length > 1) {
+            console.log('---------------------Two Pronunciations---------------------');
+        }
         for (detailGroup of detailGroups) {
             POSs = await detailGroup.$$('dl');
             let POSArray = []
@@ -117,10 +121,10 @@ const OJADCrawler = async (page, word) => {
             gana: jishoGana.replace(rest, ''),
         };
     };
-    await page.goto(`${OJAD_URL}/search/index/word:${word}`);
-    await page.waitFor(WAITING);
     let content = '';
     try {
+        await page.goto(`${OJAD_URL}/search/index/word:${word}`);
+        await page.waitFor(WAITING);
         await page.waitFor('#search_result.ojad_dropshadow_standalone');
         let resultTable = await page.$('#search_result.ojad_dropshadow_standalone #word_table.draggable');
         if (resultTable) {
@@ -178,10 +182,9 @@ const OJADCrawler = async (page, word) => {
 };
 
 const ForvoCrawler = async (page, word) => {
-    await page.goto(`${FORVO_URL}/${word}/#ja`);
-    await page.waitFor(WAITING);
-    
     try {
+        await page.goto(`${FORVO_URL}/${word}/#ja`);
+        await page.waitFor(WAITING);
         let audioArray = [];
         await page.waitFor('article.pronunciations header em#ja');
         let pronunciations = await page.$$('article.pronunciations');
@@ -222,18 +225,24 @@ const ForvoCrawler = async (page, word) => {
     let browser, page;
     browser = await puppeteer.launch({
         headless: true, 
-        timeout: 0
+        timeout: 0,
     });
     page = await browser.newPage();
-    await page.setViewport({height: 0, width: 0});
+    await page.setViewport({
+        height: 0, 
+        width: 0,
+    });
+    await page.setDefaultTimeout(TIMEOUT);
 
     let AnkiCardArray = [];
     for (let i = 0; i < verbList.length; i++) {
         let meaningArray = [];
         meaningArray = await littleDCrawler(page, verbList[i]);
         let OJADFrame = await OJADCrawler(page, verbList[i]);
-        AnkiCard = sentenceParsing(meaningArray, OJADFrame);
-        AnkiCardArray.push(AnkiCard);
+        let AnkiCard = sentenceParsing(meaningArray, OJADFrame);
+        if (AnkiCard.back_word) {
+            AnkiCardArray.push(AnkiCard);
+        }
     }
 
     for (word of wordList) {
@@ -259,7 +268,9 @@ const ForvoCrawler = async (page, word) => {
             }
         }
         if (!PRIOR_AUTHOR_FOUND && !AUTHOR_FOUND) {
-            await request.get(audioArray[0].audioUrl).pipe(fs.createWriteStream(`${DOWNLOAD_DIR}/${FILENAME}`));
+            if (audioArray.length >= 1) {
+                await request.get(audioArray[0].audioUrl).pipe(fs.createWriteStream(`${DOWNLOAD_DIR}/${FILENAME}`));
+            }
         }
 
         let AnkiCard = {
@@ -270,7 +281,9 @@ const ForvoCrawler = async (page, word) => {
         AnkiCard.front_word = `[sound:${FILENAME}]${word}<br>`;
 
         AnkiCard = sentenceParsing(meaningArray, AnkiCard);
-        AnkiCardArray.push(AnkiCard);
+        if (AnkiCard.back_word) {
+            AnkiCardArray.push(AnkiCard);
+        }
     }
 
     fs.writeFile(EXPORT_JSON_DIR, JSON.stringify(AnkiCardArray), (err) => {

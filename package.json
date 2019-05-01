@@ -7,7 +7,7 @@
   "devDependencies": {
     "fs": "0.0.1-security",
     "node-opencc": "^2.0.1",
-    "puppeteer": "^1.8.0",
+    "puppeteer": "^1.15.0",
     "request": "^2.88.0"
   },
   "dependencies": {}
