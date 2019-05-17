@@ -3,7 +3,7 @@ let request = require('request');
 let fs = require('fs');
 let opencc = require('node-opencc');
 const WAITING = 50;
-const TIMEOUT = 5000;
+const TIMEOUT = 10000;
 
 const LITTLED_URL = 'https://dict.hjenglish.com/jp/';
 const FORVO_URL = 'https://forvo.com/word'
@@ -48,19 +48,19 @@ const sentenceParsing = (meaningArray, AnkiCard) => {
 };
 
 const littleDCrawler = async (page, word) => {
-    console.log(`<<< ${word} >>>`);
-    await page.goto(LITTLED_URL);
-    await page.waitFor(WAITING);
-
-    console.log('input');
-    await page.waitFor('input[name="word"]');
-    await page.type('input[name="word"]', word);
-    await page.waitFor(1000);
-
-    console.log('button');
-    await page.waitFor('button[data-trans="jc"]');
-    await page.click('button[data-trans="jc"]');
     try {
+        console.log(`<<< ${word} >>>`);
+        await page.goto(LITTLED_URL);
+        await page.waitFor(WAITING);
+    
+        console.log('input');
+        await page.waitFor('input[name="word"]');
+        await page.type('input[name="word"]', word);
+        await page.waitFor(1000);
+    
+        console.log('button');
+        await page.waitFor('button[data-trans="jc"]');
+        await page.click('button[data-trans="jc"]');
         await page.waitFor('section.detail-groups');
         let detailGroups = await page.$$('section.detail-groups');
         let meaningArray = [];
@@ -113,12 +113,11 @@ const OJADCrawler = async (page, word) => {
             } else {
                 match = false;
             }
-        } while (match) 
+        } while (match && -index <= Math.min(jisho.length, jishoGana.length)) 
         index++;
-        rest = jisho.substr(index);
         return {
-            kanji: jisho.replace(rest, ''),
-            gana: jishoGana.replace(rest, ''),
+            kanji: jisho.substring(0, jisho.length + index),
+            gana: jishoGana.substring(0, jishoGana.length + index),
         };
     };
     let content = '';
