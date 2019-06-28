@@ -6,7 +6,7 @@ const WAITING = 50;
 const TIMEOUT = 10000;
 
 const LITTLED_URL = 'https://dict.hjenglish.com/jp/';
-const FORVO_URL = 'https://forvo.com/word'
+const FORVO_URL = 'https://forvo.com/word';
 const OJAD_URL = 'http://www.gavo.t.u-tokyo.ac.jp/ojad';
 
 const GENDER = 'male';
@@ -19,27 +19,27 @@ const PRIOR_AUTHOR = 'strawberrybrown';
 const DOWNLOAD_DIR = 'C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.media/';
 const EXPORT_JSON_DIR = 'C:/Users/Yu-Hsien/Desktop/Ankieasy/littleDJSON.json';
 
-const wordList = [
-];
-const verbList = [
-];
+const wordList = [];
+const verbList = [];
 
 String.prototype.replaceAll = function(s1, s2) {
     let result = this;
     for (token of s1) {
-        result = result.replace(new RegExp(token, "gm"), s2);
+        result = result.replace(new RegExp(token, 'gm'), s2);
     }
     return result;
-}
+};
 
 const sentenceParsing = (meaningArray, AnkiCard) => {
     meaningArray.map(readWord => {
         readWord.map(POS => {
             AnkiCard.front_word += `(${opencc.simplifiedToTaiwan(POS.partOfSpeech.replaceAll(['\n', ' '], ''))})<br>`;
-            AnkiCard.back_word += `(${opencc.simplifiedToTaiwan(POS.partOfSpeech.replaceAll(['\n', ' '], ''))})<br>`; 
+            AnkiCard.back_word += `(${opencc.simplifiedToTaiwan(POS.partOfSpeech.replaceAll(['\n', ' '], ''))})<br>`;
             POS.explain.map((exp, expIdx) => {
                 AnkiCard.front_word += `${Number(expIdx + 1)}. ${exp.sentence.JP.replaceAll(['\n', ' '], '')}<br>`;
-                AnkiCard.back_word += `${Number(expIdx + 1)}. ${opencc.simplifiedToTaiwan(exp.meaning.replaceAll(['\n', ' '], ''))}<br>`;
+                AnkiCard.back_word += `${Number(expIdx + 1)}. ${opencc.simplifiedToTaiwan(
+                    exp.meaning.replaceAll(['\n', ' '], '')
+                )}<br>`;
                 AnkiCard.back_word += `${opencc.simplifiedToTaiwan(exp.sentence.CH.replaceAll(['\n', ' '], ''))}<br>`;
             });
         });
@@ -52,12 +52,12 @@ const littleDCrawler = async (page, word) => {
         console.log(`<<< ${word} >>>`);
         await page.goto(LITTLED_URL);
         await page.waitFor(WAITING);
-    
+
         console.log('input');
         await page.waitFor('input[name="word"]');
         await page.type('input[name="word"]', word);
         await page.waitFor(1000);
-    
+
         console.log('button');
         await page.waitFor('button[data-trans="jc"]');
         await page.click('button[data-trans="jc"]');
@@ -69,7 +69,7 @@ const littleDCrawler = async (page, word) => {
         }
         for (detailGroup of detailGroups) {
             POSs = await detailGroup.$$('dl');
-            let POSArray = []
+            let POSArray = [];
             for (POS of POSs) {
                 let wordObj = {};
                 wordObj.partOfSpeech = await POS.$eval('dt', n => n.innerText);
@@ -80,7 +80,7 @@ const littleDCrawler = async (page, word) => {
                     expObj.meaning = await explain.$eval('h3 p:nth-child(2)', n => n.innerText);
                     expObj.sentence = {
                         JP: '',
-                        CH: '',
+                        CH: ''
                     };
                     if (Boolean(await explain.$('ul li'))) {
                         let sentLi = await explain.$('ul li');
@@ -98,8 +98,7 @@ const littleDCrawler = async (page, word) => {
         console.log(err);
         return [];
     }
-    
-}
+};
 
 const OJADCrawler = async (page, word) => {
     const getStem = (jisho, jishoGana) => {
@@ -113,11 +112,11 @@ const OJADCrawler = async (page, word) => {
             } else {
                 match = false;
             }
-        } while (match && -index <= Math.min(jisho.length, jishoGana.length)) 
+        } while (match && -index <= Math.min(jisho.length, jishoGana.length));
         index++;
         return {
             kanji: jisho.substring(0, jisho.length + index),
-            gana: jishoGana.substring(0, jishoGana.length + index),
+            gana: jishoGana.substring(0, jishoGana.length + index)
         };
     };
     let content = '';
@@ -127,7 +126,7 @@ const OJADCrawler = async (page, word) => {
         await page.waitFor('#search_result.ojad_dropshadow_standalone');
         let resultTable = await page.$('#search_result.ojad_dropshadow_standalone #word_table.draggable');
         if (resultTable) {
-            let rows = await resultTable.$$('tbody tr[id]'); // tr[id] means <tr id="some value"> 
+            let rows = await resultTable.$$('tbody tr[id]'); // tr[id] means <tr id="some value">
             for (row of rows) {
                 let midashi = await row.$eval(`td.midashi`, n => n.innerText.trim());
                 let jisho = midashi.split('・')[0];
@@ -154,9 +153,14 @@ const OJADCrawler = async (page, word) => {
                                     break;
                                 }
                             }
-                            let buttonId = await proc.$eval(`a.katsuyo_proc_${GENDER}_button.js_proc_${GENDER}_button`, n => n.getAttribute('id'));
+                            let buttonId = await proc.$eval(
+                                `a.katsuyo_proc_${GENDER}_button.js_proc_${GENDER}_button`,
+                                n => n.getAttribute('id')
+                            );
                             // 把數字後兩位數截掉 前面加兩個0 再取後三位
-                            let idStrNum = (`00${String(Math.floor(Number.parseInt(buttonId.substr(0, buttonId.indexOf('_') + 1)) / 100))}`).substr(-3);
+                            let idStrNum = `00${String(
+                                Math.floor(Number.parseInt(buttonId.substr(0, buttonId.indexOf('_') + 1)) / 100)
+                            )}`.substr(-3);
                             let pronUrl = `${OJAD_URL}/sound4/mp3/${GENDER}/${idStrNum}/${buttonId}.mp3`;
                             await request.get(pronUrl).pipe(fs.createWriteStream(`${DOWNLOAD_DIR}/${buttonId}.mp3`));
                             content += `[sound:${buttonId}.mp3]${gana}<br>`;
@@ -165,7 +169,7 @@ const OJADCrawler = async (page, word) => {
                 }
             }
             if (!content) {
-                console.log("<< OJAD verb candidates didn't match the input verb !!! >>")
+                console.log("<< OJAD verb candidates didn't match the input verb !!! >>");
             }
         } else {
             console.log('<< OJAD verb not found !!! >>');
@@ -176,7 +180,7 @@ const OJADCrawler = async (page, word) => {
     return {
         front_word: content,
         back_word: '',
-        read_word: '',
+        read_word: ''
     };
 };
 
@@ -189,16 +193,20 @@ const ForvoCrawler = async (page, word) => {
         let pronunciations = await page.$$('article.pronunciations');
         for (pronunciation of pronunciations) {
             let em = await pronunciation.$('header em');
-            if (await (await em.getProperty('id')).jsonValue() === 'ja') {
+            if ((await (await em.getProperty('id')).jsonValue()) === 'ja') {
                 let pronLis = await pronunciation.$$('ul.show-all-pronunciations li');
                 for (pronLi of pronLis) {
                     let audioObj = {};
                     if (Boolean(await pronLi.$('span.play')) && Boolean(await pronLi.$('span.ofLink'))) {
                         audioObj.audioUrl = await pronLi.$eval('span.play', element => {
                             const playStr = element.getAttribute('onClick');
-                            const playParams = playStr.split(';')[0].split(')')[0].split('(')[1].split(',');
-                            const paramFirst = atob(playParams[1].substring(1, playParams[1].length-1));
-                            const paramFourth = atob(playParams[4].substring(1, playParams[4].length-1));
+                            const playParams = playStr
+                                .split(';')[0]
+                                .split(')')[0]
+                                .split('(')[1]
+                                .split(',');
+                            const paramFirst = atob(playParams[1].substring(1, playParams[1].length - 1));
+                            const paramFourth = atob(playParams[4].substring(1, playParams[4].length - 1));
                             if (paramFourth) {
                                 return `https://audio00.forvo.com/audios/mp3/${paramFourth}`;
                             } else {
@@ -217,19 +225,18 @@ const ForvoCrawler = async (page, word) => {
         console.log(err);
         return [];
     }
-    
 };
 
 (async () => {
     let browser, page;
     browser = await puppeteer.launch({
-        headless: true, 
-        timeout: 0,
+        headless: true,
+        timeout: 0
     });
     page = await browser.newPage();
     await page.setViewport({
-        height: 0, 
-        width: 0,
+        height: 0,
+        width: 0
     });
     await page.setDefaultTimeout(TIMEOUT);
 
@@ -251,7 +258,7 @@ const ForvoCrawler = async (page, word) => {
         if (meaningArray.length > 0) {
             audioArray = await ForvoCrawler(page, word);
         }
-        
+
         const FILENAME = `Jp_${word}.mp3`;
         let PRIOR_AUTHOR_FOUND = false;
         let AUTHOR_FOUND = false;
@@ -275,8 +282,8 @@ const ForvoCrawler = async (page, word) => {
         let AnkiCard = {
             front_word: '',
             back_word: '',
-            read_word: '',
-        }
+            read_word: ''
+        };
         AnkiCard.front_word = `[sound:${FILENAME}]${word}<br>`;
 
         AnkiCard = sentenceParsing(meaningArray, AnkiCard);
@@ -285,11 +292,11 @@ const ForvoCrawler = async (page, word) => {
         }
     }
 
-    fs.writeFile(EXPORT_JSON_DIR, JSON.stringify(AnkiCardArray), (err) => {
+    fs.writeFile(EXPORT_JSON_DIR, JSON.stringify(AnkiCardArray), err => {
         if (err) {
             console.error(err);
             return;
-        };
+        }
     });
 
     browser.close();
