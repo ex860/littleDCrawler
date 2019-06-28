@@ -189,11 +189,11 @@ const ForvoCrawler = async (page, word) => {
         await page.goto(`${FORVO_URL}/${word}/#ja`);
         await page.waitFor(WAITING);
         let audioArray = [];
-        await page.waitFor('article.pronunciations header em#ja');
+        await page.waitFor('article.pronunciations header#ja em');
         let pronunciations = await page.$$('article.pronunciations');
         for (pronunciation of pronunciations) {
-            let em = await pronunciation.$('header em');
-            if ((await (await em.getProperty('id')).jsonValue()) === 'ja') {
+            let header = await pronunciation.$('header');
+            if ((await (await header.getProperty('id')).jsonValue()) === 'ja') {
                 let pronLis = await pronunciation.$$('ul.show-all-pronunciations li');
                 for (pronLi of pronLis) {
                     let audioObj = {};
