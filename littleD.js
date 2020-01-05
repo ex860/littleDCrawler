@@ -3,7 +3,7 @@ let request = require('request');
 let fs = require('fs');
 let opencc = require('node-opencc');
 const WAITING = 50;
-const TIMEOUT = 10000;
+const TIMEOUT = 20000;
 
 const LITTLED_URL = 'https://dict.hjenglish.com/jp/';
 const FORVO_URL = 'https://forvo.com/word';
@@ -18,6 +18,7 @@ const PRIOR_AUTHOR = 'strawberrybrown';
 
 const DOWNLOAD_DIR = 'C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.media/';
 const EXPORT_JSON_DIR = 'C:/Users/Yu-Hsien/Desktop/Ankieasy/littleDJSON.json';
+const EXPORT_LOG_DIR = 'C:/Users/Yu-Hsien/Desktop/Ankieasy/log.txt';
 
 const wordList = [];
 const verbList = [];
@@ -50,6 +51,7 @@ const sentenceParsing = (meaningArray, AnkiCard) => {
 const littleDCrawler = async (page, word) => {
     try {
         console.log(`<<< ${word} >>>`);
+        writeLogInFile(`<<< ${word} >>>\n`);
         await page.goto(LITTLED_URL);
         await page.waitFor(WAITING);
 
@@ -66,6 +68,7 @@ const littleDCrawler = async (page, word) => {
         let meaningArray = [];
         if (detailGroups.length > 1) {
             console.log('---------------------Two Pronunciations---------------------');
+            writeLogInFile('---------------------Two Pronunciations---------------------\n');
         }
         for (detailGroup of detailGroups) {
             POSs = await detailGroup.$$('dl');
@@ -96,6 +99,7 @@ const littleDCrawler = async (page, word) => {
         return meaningArray;
     } catch (err) {
         console.log(err);
+        writeLogInFile(err + '\n');
         return [];
     }
 };
@@ -169,13 +173,16 @@ const OJADCrawler = async (page, word) => {
                 }
             }
             if (!content) {
-                console.log("<< OJAD verb candidates didn't match the input verb !!! >>");
+                console.log('<< OJAD verb candidates didn\'t match the input verb !!! >>');
+                writeLogInFile('<< OJAD verb candidates didn\'t match the input verb !!! >>\n');
             }
         } else {
             console.log('<< OJAD verb not found !!! >>');
+            writeLogInFile('<< OJAD verb not found !!! >>\n');
         }
     } catch (err) {
         console.log(err);
+        writeLogInFile(err + '\n');
     }
     return {
         front_word: content,
@@ -223,8 +230,18 @@ const ForvoCrawler = async (page, word) => {
         return audioArray;
     } catch (err) {
         console.log(err);
+        writeLogInFile(err + '\n');
         return [];
     }
+};
+
+writeLogInFile = log => {
+    fs.appendFile(EXPORT_LOG_DIR, log, err => {
+        if (err) {
+            console.error(err);
+            return;
+        }
+    });
 };
 
 (async () => {
@@ -240,6 +257,13 @@ const ForvoCrawler = async (page, word) => {
     });
     await page.setDefaultTimeout(TIMEOUT);
 
+    fs.writeFile(EXPORT_LOG_DIR, '', err => {
+        if (err) {
+            console.error(err);
+            return;
+        }
+    });
+    
     let AnkiCardArray = [];
     for (let i = 0; i < verbList.length; i++) {
         let meaningArray = [];
