@@ -4,6 +4,7 @@ let fs = require('fs');
 let opencc = require('node-opencc');
 const WAITING = 50;
 const TIMEOUT = 20000;
+const HEADLESS_MODE = true;
 
 const LITTLED_URL = 'https://dict.hjenglish.com/jp/';
 const FORVO_URL = 'https://forvo.com/word';
@@ -32,11 +33,11 @@ String.prototype.replaceAll = function(s1, s2) {
 };
 
 const sentenceParsing = (meaningArray, AnkiCard) => {
-    meaningArray.map(readWord => {
-        readWord.map(POS => {
+    meaningArray.forEach(readWord => {
+        readWord.forEach(POS => {
             AnkiCard.front_word += `(${opencc.simplifiedToTaiwan(POS.partOfSpeech.replaceAll(['\n', ' '], ''))})<br>`;
             AnkiCard.back_word += `(${opencc.simplifiedToTaiwan(POS.partOfSpeech.replaceAll(['\n', ' '], ''))})<br>`;
-            POS.explain.map((exp, expIdx) => {
+            POS.explain.forEach((exp, expIdx) => {
                 AnkiCard.front_word += `${Number(expIdx + 1)}. ${exp.sentence.JP.replaceAll(['\n', ' '], '')}<br>`;
                 AnkiCard.back_word += `${Number(expIdx + 1)}. ${opencc.simplifiedToTaiwan(
                     exp.meaning.replaceAll(['\n', ' '], '')
@@ -247,7 +248,7 @@ writeLogInFile = log => {
 (async () => {
     let browser, page;
     browser = await puppeteer.launch({
-        headless: true,
+        headless: HEADLESS_MODE,
         timeout: 0
     });
     page = await browser.newPage();
@@ -265,10 +266,10 @@ writeLogInFile = log => {
     });
     
     let AnkiCardArray = [];
-    for (let i = 0; i < verbList.length; i++) {
+    for (verb of verbList) {
         let meaningArray = [];
-        meaningArray = await littleDCrawler(page, verbList[i]);
-        let OJADFrame = await OJADCrawler(page, verbList[i]);
+        meaningArray = await littleDCrawler(page, verb);
+        let OJADFrame = await OJADCrawler(page, verb);
         let AnkiCard = sentenceParsing(meaningArray, OJADFrame);
         if (AnkiCard.back_word) {
             AnkiCardArray.push(AnkiCard);
