@@ -20,9 +20,15 @@ const PRIOR_AUTHOR = 'strawberrybrown';
 const DOWNLOAD_DIR = 'C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.media/';
 const EXPORT_JSON_DIR = 'C:/Users/Yu-Hsien/Desktop/Ankieasy/littleDJSON.json';
 const EXPORT_LOG_DIR = 'C:/Users/Yu-Hsien/Desktop/Ankieasy/log.txt';
+const WORD_IMGAE_FOLDER_DIR = 'C:/Users/Yu-Hsien/Desktop/word';
+const VERB_IMGAE_FOLDER_DIR = 'C:/Users/Yu-Hsien/Desktop/verb';
 
-const wordList = [];
-const verbList = [];
+let IS_IMAGE = process.argv[2] === 'image';
+
+let wordList = [
+];
+let verbList = [
+];
 
 String.prototype.replaceAll = function(s1, s2) {
     let result = this;
@@ -32,7 +38,7 @@ String.prototype.replaceAll = function(s1, s2) {
     return result;
 };
 
-const sentenceParsing = (meaningArray, AnkiCard) => {
+const convertMeaning2String = (meaningArray, AnkiCard) => {
     meaningArray.forEach(readWord => {
         readWord.forEach(POS => {
             AnkiCard.front_word += `(${opencc.simplifiedToTaiwan(POS.partOfSpeech.replaceAll(['\n', ' '], ''))})<br>`;
@@ -236,7 +242,7 @@ const ForvoCrawler = async (page, word) => {
     }
 };
 
-writeLogInFile = log => {
+const writeLogInFile = log => {
     fs.appendFile(EXPORT_LOG_DIR, log, err => {
         if (err) {
             console.error(err);
@@ -244,6 +250,14 @@ writeLogInFile = log => {
         }
     });
 };
+
+const imageParser = (imageFolder, downloadFolder) => {
+    let images = fs.readdirSync(imageFolder);
+    images.forEach(image => {
+        fs.copyFileSync(`${imageFolder}/${image}`, `${downloadFolder}/${image}`);
+    });
+    return images.map(image => image.replace('.png', ''));
+}
 
 (async () => {
     let browser, page;
@@ -258,6 +272,11 @@ writeLogInFile = log => {
     });
     await page.setDefaultTimeout(TIMEOUT);
 
+    if (IS_IMAGE) {
+        wordList = imageParser(WORD_IMGAE_FOLDER_DIR, DOWNLOAD_DIR);
+        verbList = imageParser(VERB_IMGAE_FOLDER_DIR, DOWNLOAD_DIR);
+    }
+
     fs.writeFile(EXPORT_LOG_DIR, '', err => {
         if (err) {
             console.error(err);
@@ -270,7 +289,10 @@ writeLogInFile = log => {
         let meaningArray = [];
         meaningArray = await littleDCrawler(page, verb);
         let OJADFrame = await OJADCrawler(page, verb);
-        let AnkiCard = sentenceParsing(meaningArray, OJADFrame);
+        let AnkiCard = convertMeaning2String(meaningArray, OJADFrame);
+        if (IS_IMAGE) {
+            AnkiCard.front_word += `<img src="${verb}.png">`;
+        }
         if (AnkiCard.back_word) {
             AnkiCardArray.push(AnkiCard);
         }
@@ -311,7 +333,10 @@ writeLogInFile = log => {
         };
         AnkiCard.front_word = `[sound:${FILENAME}]${word}<br>`;
 
-        AnkiCard = sentenceParsing(meaningArray, AnkiCard);
+        AnkiCard = convertMeaning2String(meaningArray, AnkiCard);
+        if (IS_IMAGE) {
+            AnkiCard.front_word += `<img src="${word}.png">`;
+        }
         if (AnkiCard.back_word) {
             AnkiCardArray.push(AnkiCard);
         }
