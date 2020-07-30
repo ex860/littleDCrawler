@@ -1,6 +1,7 @@
 let puppeteer = require('puppeteer');
 let request = require('request');
 let fs = require('fs');
+let readline = require('readline');
 let opencc = require('node-opencc');
 const WAITING = 50;
 const TIMEOUT = 20000;
@@ -23,7 +24,17 @@ const EXPORT_LOG_DIR = 'C:/Users/Yu-Hsien/Desktop/Ankieasy/log.txt';
 const WORD_IMGAE_FOLDER_DIR = 'C:/Users/Yu-Hsien/Desktop/word';
 const VERB_IMGAE_FOLDER_DIR = 'C:/Users/Yu-Hsien/Desktop/verb';
 
-let IS_IMAGE = process.argv[2] === 'image';
+const OUTER_WORD_LIST_DIR = 'C:/Users/Yu-Hsien/Desktop/Ankieasy/input/input_M.txt';
+
+let IS_IMAGE = false;
+let USING_PYTHON = false;
+
+switch (process.argv[2]) {
+    case 'image':
+        IS_IMAGE = true;
+    case 'python':
+        USING_PYTHON = true;
+}
 
 let wordList = [
 ];
@@ -259,6 +270,30 @@ const imageParser = (imageFolder, downloadFolder) => {
     return images.map(image => image.replace('.png', ''));
 }
 
+const getOuterWord = wordFilePath => {
+    wordList = [];
+    verbList = [];
+    let type = '';
+    data = fs.readFileSync(wordFilePath, 'utf-8');
+    for (line of data.split('\r\n')) {
+        if (line.indexOf('<word>') >= 0) {
+            type = 'word';
+        } else if (line.indexOf('<verb>') >= 0) {
+            type = 'verb';
+        } else if (line.indexOf('----') >= 0) {
+            if (type) {
+                return;
+            }
+        } else {
+            if (type === 'word') {
+                wordList.push(line.trim());
+            } else if (type === 'verb') {
+                verbList.push(line.trim());
+            }
+        }
+    }
+}
+
 (async () => {
     let browser, page;
     browser = await puppeteer.launch({
@@ -275,7 +310,10 @@ const imageParser = (imageFolder, downloadFolder) => {
     if (IS_IMAGE) {
         wordList = imageParser(WORD_IMGAE_FOLDER_DIR, DOWNLOAD_DIR);
         verbList = imageParser(VERB_IMGAE_FOLDER_DIR, DOWNLOAD_DIR);
+    } else if (USING_PYTHON) {
+        getOuterWord(OUTER_WORD_LIST_DIR);
     }
+
 
     fs.writeFile(EXPORT_LOG_DIR, '', err => {
         if (err) {
