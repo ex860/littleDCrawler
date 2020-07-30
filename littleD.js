@@ -14,7 +14,7 @@ const OJAD_URL = 'http://www.gavo.t.u-tokyo.ac.jp/ojad';
 const GENDER = 'male';
 
 // const VERB_TYPE = ['jisho', 'masu', 'te', 'ta', 'nai', 'nakatta', 'ba', 'shieki', 'ukemi', 'meirei', 'kano', 'ishi'];
-const VERB_TYPE = ['jisho', 'masu', 'te'];
+const VERB_TYPE = ['jisho', 'masu', 'te', 'nai', 'kano', 'ishi'];
 const AUTHOR_LIST = ['akitomo', 'kaoring', 'kyokotokyojapan', 'kiiro', 'yasuo', 'sorechaude', 'Phlebia'];
 const PRIOR_AUTHOR = 'strawberrybrown';
 
@@ -73,12 +73,10 @@ const littleDCrawler = async (page, word) => {
         await page.goto(LITTLED_URL);
         await page.waitFor(WAITING);
 
-        console.log('input');
         await page.waitFor('input[name="word"]');
         await page.type('input[name="word"]', word);
         await page.waitFor(1000);
 
-        console.log('button');
         await page.waitFor('button[data-trans="jc"]');
         await page.click('button[data-trans="jc"]');
         await page.waitFor('section.detail-groups');
@@ -126,7 +124,6 @@ const OJADCrawler = async (page, word) => {
     const getStem = (jisho, jishoGana) => {
         let index = -1;
         let match = false;
-        let rest = '';
         do {
             if (jisho.substr(index) === jishoGana.substr(index)) {
                 index--;
