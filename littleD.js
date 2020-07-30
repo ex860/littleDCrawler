@@ -32,8 +32,10 @@ let USING_PYTHON = false;
 switch (process.argv[2]) {
     case 'image':
         IS_IMAGE = true;
+        break;
     case 'python':
         USING_PYTHON = true;
+        break;
 }
 
 let wordList = [
