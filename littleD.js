@@ -3,28 +3,24 @@ let request = require('request');
 let fs = require('fs');
 let readline = require('readline');
 let opencc = require('node-opencc');
-const WAITING = 50;
-const TIMEOUT = 20000;
-const HEADLESS_MODE = true;
-
-const LITTLED_URL = 'https://dict.hjenglish.com/jp/';
-const FORVO_URL = 'https://forvo.com/word';
-const OJAD_URL = 'http://www.gavo.t.u-tokyo.ac.jp/ojad';
-
-const GENDER = 'male';
-
-// const VERB_TYPE = ['jisho', 'masu', 'te', 'ta', 'nai', 'nakatta', 'ba', 'shieki', 'ukemi', 'meirei', 'kano', 'ishi'];
-const VERB_TYPE = ['jisho', 'masu', 'te', 'nai', 'kano', 'ishi'];
-const AUTHOR_LIST = ['akitomo', 'kaoring', 'kyokotokyojapan', 'kiiro', 'yasuo', 'sorechaude', 'Phlebia'];
-const PRIOR_AUTHOR = 'strawberrybrown';
-
-const DOWNLOAD_DIR = 'C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.media/';
-const EXPORT_JSON_DIR = 'C:/Users/Yu-Hsien/Desktop/Ankieasy/littleDJSON.json';
-const EXPORT_LOG_DIR = 'C:/Users/Yu-Hsien/Desktop/Ankieasy/log.txt';
-const WORD_IMGAE_FOLDER_DIR = 'C:/Users/Yu-Hsien/Desktop/word';
-const VERB_IMGAE_FOLDER_DIR = 'C:/Users/Yu-Hsien/Desktop/verb';
-
-const OUTER_WORD_LIST_DIR = 'C:/Users/Yu-Hsien/Desktop/Ankieasy/input/input_M.txt';
+const {
+    WAITING,
+    TIMEOUT,
+    HEADLESS_MODE,
+    LITTLED_URL,
+    FORVO_URL,
+    OJAD_URL,
+    GENDER,
+    VERB_TYPE,
+    AUTHOR_LIST,
+    PRIOR_AUTHOR,
+    DOWNLOAD_DIR,
+    EXPORT_JSON_DIR,
+    EXPORT_LOG_DIR,
+    WORD_IMGAE_FOLDER_DIR,
+    VERB_IMGAE_FOLDER_DIR,
+    OUTER_WORD_LIST_DIR,
+} = require('./config.js');
 
 let IS_IMAGE = false;
 let USING_PYTHON = false;
