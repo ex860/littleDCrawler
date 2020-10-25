@@ -50,14 +50,14 @@ String.prototype.replaceAll = function(s1, s2) {
 const convertMeaning2String = (meaningArray, AnkiCard) => {
     meaningArray.forEach(readWord => {
         readWord.forEach(POS => {
-            AnkiCard.front_word += `(${opencc.simplifiedToTaiwan(POS.partOfSpeech.replaceAll(['\n', ' '], ''))})<br>`;
-            AnkiCard.back_word += `(${opencc.simplifiedToTaiwan(POS.partOfSpeech.replaceAll(['\n', ' '], ''))})<br>`;
+            AnkiCard.Expression += `(${opencc.simplifiedToTaiwan(POS.partOfSpeech.replaceAll(['\n', ' '], ''))})<br>`;
+            AnkiCard.Meaning += `(${opencc.simplifiedToTaiwan(POS.partOfSpeech.replaceAll(['\n', ' '], ''))})<br>`;
             POS.explain.forEach((exp, expIdx) => {
-                AnkiCard.front_word += `${Number(expIdx + 1)}. ${exp.sentence.JP.replaceAll(['\n', ' '], '')}<br>`;
-                AnkiCard.back_word += `${Number(expIdx + 1)}. ${opencc.simplifiedToTaiwan(
+                AnkiCard.Expression += `${Number(expIdx + 1)}. ${exp.sentence.JP.replaceAll(['\n', ' '], '')}<br>`;
+                AnkiCard.Meaning += `${Number(expIdx + 1)}. ${opencc.simplifiedToTaiwan(
                     exp.meaning.replaceAll(['\n', ' '], '')
                 )}<br>`;
-                AnkiCard.back_word += `${opencc.simplifiedToTaiwan(exp.sentence.CH.replaceAll(['\n', ' '], ''))}<br>`;
+                AnkiCard.Meaning += `${opencc.simplifiedToTaiwan(exp.sentence.CH.replaceAll(['\n', ' '], ''))}<br>`;
             });
         });
     });
@@ -198,9 +198,9 @@ const OJADCrawler = async (page, word) => {
         writeLogInFile(err + '\n');
     }
     return {
-        front_word: content,
-        back_word: '',
-        read_word: ''
+        Expression: content,
+        Meaning: '',
+        Reading: ''
     };
 };
 
@@ -271,13 +271,13 @@ const getOuterWord = wordFilePath => {
     let type = '';
     data = fs.readFileSync(wordFilePath, 'utf-8');
     for (line of data.split('\r\n')) {
-        if (line.indexOf('<word>') >= 0) {
+        if (line.indexOf('[日文單字]') >= 0) {
             type = 'word';
-        } else if (line.indexOf('<verb>') >= 0) {
+        } else if (line.indexOf('[日文動詞]') >= 0) {
             type = 'verb';
         } else if (line.indexOf('----') >= 0) {
             if (type) {
-                return;
+                type = '';
             }
         } else {
             if (type === 'word') {
@@ -324,9 +324,9 @@ const getOuterWord = wordFilePath => {
         let OJADFrame = await OJADCrawler(page, verb);
         let AnkiCard = convertMeaning2String(meaningArray, OJADFrame);
         if (IS_IMAGE) {
-            AnkiCard.front_word += `<img src="${verb}.png">`;
+            AnkiCard.Expression += `<img src="${verb}.png">`;
         }
-        if (AnkiCard.back_word) {
+        if (AnkiCard.Meaning) {
             AnkiCardArray.push(AnkiCard);
         }
     }
@@ -360,17 +360,17 @@ const getOuterWord = wordFilePath => {
         }
 
         let AnkiCard = {
-            front_word: '',
-            back_word: '',
-            read_word: ''
+            Expression: '',
+            Meaning: '',
+            Reading: ''
         };
-        AnkiCard.front_word = `[sound:${FILENAME}]${word}<br>`;
+        AnkiCard.Expression = `[sound:${FILENAME}]${word}<br>`;
 
         AnkiCard = convertMeaning2String(meaningArray, AnkiCard);
         if (IS_IMAGE) {
-            AnkiCard.front_word += `<img src="${word}.png">`;
+            AnkiCard.Expression += `<img src="${word}.png">`;
         }
-        if (AnkiCard.back_word) {
+        if (AnkiCard.Meaning) {
             AnkiCardArray.push(AnkiCard);
         }
     }

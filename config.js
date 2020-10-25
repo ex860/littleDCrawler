@@ -24,11 +24,11 @@ let OUTER_WORD_LIST_DIR = '';
 switch (process.platform) {
     case 'win32':
         DOWNLOAD_DIR = 'C:/Users/Yu-Hsien/AppData/Roaming/Anki2/YuHsien/collection.media/';
-        EXPORT_JSON_DIR = 'C:/Users/Yu-Hsien/Desktop/Ankieasy/littleDJSON.json';
-        EXPORT_LOG_DIR = 'C:/Users/Yu-Hsien/Desktop/Ankieasy/log.txt';
+        EXPORT_JSON_DIR = 'C:/Users/Yu-Hsien/Desktop/Automanki/littleDJSON.json';
+        EXPORT_LOG_DIR = 'C:/Users/Yu-Hsien/Desktop/Automanki/log.txt';
         WORD_IMGAE_FOLDER_DIR = 'C:/Users/Yu-Hsien/Desktop/word';
         VERB_IMGAE_FOLDER_DIR = 'C:/Users/Yu-Hsien/Desktop/verb';
-        OUTER_WORD_LIST_DIR = 'C:/Users/Yu-Hsien/Desktop/Ankieasy/input/input_M.txt';
+        OUTER_WORD_LIST_DIR = 'C:/Users/Yu-Hsien/Desktop/Automanki/input_JP.txt';
         break;
     case 'linux':
         DOWNLOAD_DIR = '/home/yu/.local/share/Anki2/YuHsien/collection.media/';
