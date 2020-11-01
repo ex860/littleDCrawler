@@ -19,6 +19,7 @@ let EXPORT_LOG_DIR = '';
 let WORD_IMGAE_FOLDER_DIR = '';
 let VERB_IMGAE_FOLDER_DIR = '';
 let OUTER_WORD_LIST_DIR = '';
+let SPLITTER = ''
 
 // console.log(process.platform)
 switch (process.platform) {
@@ -29,6 +30,7 @@ switch (process.platform) {
         WORD_IMGAE_FOLDER_DIR = 'C:/Users/Yu-Hsien/Desktop/word';
         VERB_IMGAE_FOLDER_DIR = 'C:/Users/Yu-Hsien/Desktop/verb';
         OUTER_WORD_LIST_DIR = 'C:/Users/Yu-Hsien/Desktop/Automanki/input_JP.txt';
+        SPLITTER = '\r\n';
         break;
     case 'linux':
         DOWNLOAD_DIR = '/home/yu/.local/share/Anki2/YuHsien/collection.media/';
@@ -37,8 +39,10 @@ switch (process.platform) {
         WORD_IMGAE_FOLDER_DIR = '/home/yu/Desktop/word';
         VERB_IMGAE_FOLDER_DIR = '/home/yu/Desktop/verb';
         OUTER_WORD_LIST_DIR = '/home/yu/Desktop/Ankieasy/input/input_M.txt';
+        SPLITTER = '\n';
         break;
     case 'darwin':
+        SPLITTER = '\n';
         break;
 }
 
@@ -59,4 +63,5 @@ module.exports = {
     WORD_IMGAE_FOLDER_DIR,
     VERB_IMGAE_FOLDER_DIR,
     OUTER_WORD_LIST_DIR,
+    SPLITTER,
 };

@@ -20,6 +20,7 @@ const {
     WORD_IMGAE_FOLDER_DIR,
     VERB_IMGAE_FOLDER_DIR,
     OUTER_WORD_LIST_DIR,
+    SPLITTER,
 } = require('./config.js');
 
 let IS_IMAGE = false;
@@ -270,7 +271,7 @@ const getOuterWord = wordFilePath => {
     verbList = [];
     let type = '';
     data = fs.readFileSync(wordFilePath, 'utf-8');
-    for (line of data.split('\r\n')) {
+    for (line of data.split(SPLITTER)) {
         if (line.indexOf('[日文單字]') >= 0) {
             type = 'word';
         } else if (line.indexOf('[日文動詞]') >= 0) {
