@@ -42,6 +42,12 @@ switch (process.platform) {
         SPLITTER = '\n';
         break;
     case 'darwin':
+        DOWNLOAD_DIR = '/Users/pacsoft/Library/Application Support/Anki2/YuHsien/collection.media/';
+        EXPORT_JSON_DIR = '/Users/pacsoft/Desktop/Automanki/littleDJSON.json';
+        EXPORT_LOG_DIR = '/Users/pacsoft/Desktop/Automanki/log.txt';
+        WORD_IMGAE_FOLDER_DIR = '';
+        VERB_IMGAE_FOLDER_DIR = '';
+        OUTER_WORD_LIST_DIR = '/Users/pacsoft/Desktop/Automanki/input_JP.txt';
         SPLITTER = '\n';
         break;
 }
